@@ -1,0 +1,5 @@
+apiVersion: v2
+name: sqs-prometheus-exporter
+description: Helm chart for the SQS Prometheus Exporter
+version: 1.0.0
+appVersion: 1.0.0

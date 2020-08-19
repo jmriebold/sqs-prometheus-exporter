@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app.name }}
+  namespace: {{ .Values.app.namespace }}
+  labels:
+    app: {{ template "sqs-prometheus-exporter.name" . }}
+    chart: {{ template "sqs-prometheus-exporter.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ template "sqs-prometheus-exporter.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "sqs-prometheus-exporter.name" . }}
+        release: {{ .Release.Name }}
+      annotations:
+{{- with .Values.deployment.podAnnotations }}
+{{ toYaml . | indent 8 }}
+{{- end }}
+        prometheus.io/scrape: "true"
+    spec:
+      containers:
+        - name: {{ .Values.app.name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: traffic
+              containerPort: 8080
+              protocol: TCP
+          resources:
+{{- with .Values.resources }}
+{{ toYaml . | indent 12 }}
+{{- end }}
+          env:
+            - name: SQS_QUEUE_URLS
+              value: {{ .Values.sqs.queueUrls | join "," | quote }}
+            - name: SQS_MONITOR_INTERVAL_SECONDS
+              value: {{ .Values.sqs.monitorIntervalSeconds | quote }}
+            - name: AWS_REGION
+              value: {{ .Values.sqs.region | quote }}
+{{- range $key, $value := .Values.deployment.extraEnv }}
+            - name: "{{ $key }}"
+              value: "{{ $value }}"
+{{- end }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: traffic
+            initialDelaySeconds: 5
+            timeoutSeconds: 10
+            periodSeconds: 30
+      restartPolicy: Always
+      nodeSelector:
+{{- with .Values.deployment.nodeSelector }}
+{{ toYaml . | indent 8 }}
+{{- end }}
+      affinity:
+{{- with .Values.deployment.affinity }}
+{{ toYaml . | indent 8 }}
+{{- end }}
+      tolerations:
+{{- with .Values.deployment.tolerations }}
+{{ toYaml . | indent 8 }}
+{{- end }}

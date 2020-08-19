@@ -1,0 +1,25 @@
+app:
+  name: sqs-prometheus-exporter
+  namespace: default
+
+image:
+  repository: jmriebold/sqs-prometheus-exporter
+  tag: v1.0.0
+
+deployment:
+  resources:
+    requests:
+      memory: 15Mi
+    limits: {}
+
+  podAnnotations: {}
+  extraEnv: {}
+
+  tolerations: []
+  nodeSelector: {}
+  affinity: {}
+
+sqs:
+  region: us-west-2
+  queueUrls: []
+  monitorIntervalSeconds: 30
