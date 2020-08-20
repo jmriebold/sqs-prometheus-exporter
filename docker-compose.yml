@@ -10,6 +10,6 @@ services:
       - AWS_SECRET_ACCESS_KEY
       - AWS_REGION
       - SQS_MONITOR_INTERVAL_SECONDS=30
-      - SQS_QUEUE_URLS=https://sqs.us-west-2.amazonaws.com/780213378361/gravity-qa-publisher-incoming-production,https://sqs.us-west-2.amazonaws.com/780213378361/nebula-incoming-urls-high,https://sqs.us-west-2.amazonaws.com/780213378361/nebula-incoming-urls-low,https://sqs.us-west-2.amazonaws.com/780213378361/nebula-incoming-urls-normal,https://sqs.us-west-2.amazonaws.com/780213378361/oversight-feature-processor-prod,https://sqs.us-west-2.amazonaws.com/780213378361/oversight-rts-processor-prod,https://sqs.us-west-2.amazonaws.com/780213378361/site-pipeline-processor-input-prod,https://sqs.us-west-2.amazonaws.com/780213378361/vic-mgmt-processor-prod
+      - SQS_QUEUE_URLS=https://sqs.[region].amazonaws.com/[account-id]/[queue-name-1],https://sqs.[region].amazonaws.com/[account-id]/[queue-name-2]
     ports:
       - 80:8080
