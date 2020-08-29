@@ -4,7 +4,7 @@ app:
 
 image:
   repository: jmriebold/sqs-prometheus-exporter
-  tag: v1.0.0
+  tag: v1.0.1
 
 deployment:
   resources:
