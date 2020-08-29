@@ -126,7 +126,7 @@ func main() {
 	}
 	queueUrls := strings.Split(queueVar, ",")
 
-	log.Info().Int("interval", int(monitorInterval)).Msg("Starting queue monitors")
+	log.Info().Int("interval", int(monitorInterval)).Strs("queueUrls", queueUrls).Msg("Starting queue monitors")
 
 	go monitorQueues(queueUrls)
 
