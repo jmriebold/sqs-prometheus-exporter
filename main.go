@@ -132,5 +132,9 @@ func main() {
 
 	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/healthz", healthcheck)
-	http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		log.Error().Str("errorMessage", err.Error()).Msg("Could not start http listener")
+		os.Exit(1)
+	}
 }
