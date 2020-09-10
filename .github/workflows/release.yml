@@ -1,10 +1,10 @@
 on:
   release:
     types: [published]
-    
+
 name: Build Release
 jobs:
-  amd64-releases:
+  release-bins:
     name: Release Go Binary
     runs-on: ubuntu-latest
     strategy:
