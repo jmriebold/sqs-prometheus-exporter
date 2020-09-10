@@ -1,5 +1,7 @@
 # SQS Prometheus Exporter
 
+![build](https://github.com/jmriebold/sqs-prometheus-exporter/workflows/Build/badge.svg)
+
 A simple, lightweight Prometheus metrics exporter for [AWS's Simple Queue Service](https://aws.amazon.com/sqs/), written in Go. Potential use cases are monitoring SQS queues or scaling off SQS queues (e.g. with a [Kubernetes HPA](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/)).
 
 ## Use
@@ -24,9 +26,9 @@ By default the application will scrape queue metrics every 30 seconds. To change
 
 The SQS Prometheus Exporter serves the following metrics:
 
-* `sqs_approximatenumberofmessages`
-* `sqs_approximatenumberofmessagesdelayed`
-* `sqs_approximatenumberofmessagesnotvisible`
+- `sqs_approximatenumberofmessages`
+- `sqs_approximatenumberofmessagesdelayed`
+- `sqs_approximatenumberofmessagesnotvisible`
 
 Each has a `queue` label, which will be populated with the queue name and metric value.
 
@@ -34,6 +36,6 @@ Each has a `queue` label, which will be populated with the queue name and metric
 
 SQS Prometheus Exporter uses the following Go packages:
 
-* [aws-sdk-go](https://github.com/aws/aws-sdk-go) for monitoring the queues themselves
-* [prometheus/client_golang](https://github.com/prometheus/client_golang) for metrics
-* [zerolog](https://github.com/rs/zerolog) for logging
+- [aws-sdk-go](https://github.com/aws/aws-sdk-go) for monitoring the queues themselves
+- [prometheus/client_golang](https://github.com/prometheus/client_golang) for metrics
+- [zerolog](https://github.com/rs/zerolog) for logging
