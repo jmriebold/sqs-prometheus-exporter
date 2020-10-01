@@ -1,5 +1,6 @@
 on: push
 name: Build
+
 jobs:
   build-go:
     strategy:
