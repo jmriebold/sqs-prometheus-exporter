@@ -48,7 +48,7 @@ helm install release-name \
   --set sqs.region=[region-name] \
   --set sqs.queueUrls[0]=https://sqs.[region].amazonaws.com/[account-id]/[queue-name-1] \
   --set serviceAccount.create=true \
-  --set serviceAccount.annotations.eks.amazonaws.com/role-arn=[role-arn] \
+  --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"=[role-arn] \
   jmriebold/sqs-prometheus-exporter
 ```
 
