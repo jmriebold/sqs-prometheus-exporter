@@ -19,6 +19,10 @@ deployment:
   nodeSelector: {}
   affinity: {}
 
+serviceAccount:
+  create: false
+  annotations: {}
+
 sqs:
   region: us-west-2
   queueUrls: []

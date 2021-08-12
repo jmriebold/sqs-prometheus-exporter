@@ -1,5 +1,18 @@
 apiVersion: v2
 name: sqs-prometheus-exporter
+version: 1.1.0
 description: Helm chart for the SQS Prometheus Exporter
-version: 1.0.1
+keywords:
+  - prometheus
+  - prometheus-exporter
+  - monitoring
+  - metrics
+  - aws
+  - sqs
+home: https://github.com/jmriebold/sqs-prometheus-exporter
+sources:
+  - https://github.com/jmriebold/sqs-prometheus-exporter
+maintainers:
+  - name: John Riebold
+    email: jmriebold@gmail.com
 appVersion: 1.0.1
