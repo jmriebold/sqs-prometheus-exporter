@@ -60,7 +60,7 @@ To use Kiam/Kube2Iam for granting SQS Prometheus Exporter access to SQS:
 helm install release-name \
   --set sqs.region=[region-name] \
   --set sqs.queueUrls[0]=https://sqs.[region].amazonaws.com/[account-id]/[queue-name-1] \
-  --set podAnnotations.iam.amazonaws.com/role=[role-name] \
+  --set podAnnotations."iam\.amazonaws\.com/role"=[role-name] \
   jmriebold/sqs-prometheus-exporter
 ```
 
