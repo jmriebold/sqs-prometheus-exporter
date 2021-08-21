@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -8,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/sqs"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/sqs"
+	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -20,9 +21,9 @@ import (
 // Default to checking queues every 30 seconds
 const defaultMonitorInterval = 30
 
-var monitorInterval = getMonitorInterval()
+var svc = getSqsClient()
 
-var svc = sqs.New(session.Must(session.NewSession()))
+var monitorInterval = getMonitorInterval()
 
 var labelNames = []string{"queue"}
 
@@ -47,6 +48,16 @@ type queueResult struct {
 	QueueResults *sqs.GetQueueAttributesOutput
 }
 
+func getSqsClient() *sqs.Client {
+	cfg, err := config.LoadDefaultConfig(context.TODO())
+	if err != nil {
+		log.Error().Str("errorMessage", err.Error()).Msg("error loading AWS config")
+		os.Exit(1)
+	}
+
+	return sqs.NewFromConfig(cfg)
+}
+
 func getMonitorInterval() time.Duration {
 	monitorIntervalStr, varSet := os.LookupEnv("SQS_MONITOR_INTERVAL_SECONDS")
 	if !varSet || monitorIntervalStr == "" {
@@ -67,15 +78,15 @@ func monitorQueue(queueURL string, c chan queueResult) {
 	queueName := queueComponents[len(queueComponents)-1]
 
 	params := &sqs.GetQueueAttributesInput{
-		QueueUrl: aws.String(queueURL),
-		AttributeNames: []*string{
-			aws.String("ApproximateNumberOfMessages"),
-			aws.String("ApproximateNumberOfMessagesDelayed"),
-			aws.String("ApproximateNumberOfMessagesNotVisible"),
+		QueueUrl: &queueURL,
+		AttributeNames: []types.QueueAttributeName{
+			types.QueueAttributeNameApproximateNumberOfMessages,
+			types.QueueAttributeNameApproximateNumberOfMessagesDelayed,
+			types.QueueAttributeNameApproximateNumberOfMessagesNotVisible,
 		},
 	}
 
-	resp, err := svc.GetQueueAttributes(params)
+	resp, err := svc.GetQueueAttributes(context.TODO(), params)
 	if err != nil {
 		log.Error().Str("errorMessage", err.Error()).Msg("error checking queue")
 		os.Exit(1)
@@ -95,7 +106,7 @@ func monitorQueues(queueUrls []string) {
 			queueResult := <-c
 			for attrib := range queueResult.QueueResults.Attributes {
 				prop := queueResult.QueueResults.Attributes[attrib]
-				nMessages, _ := strconv.ParseFloat(*prop, 64)
+				nMessages, _ := strconv.ParseFloat(prop, 64)
 				switch attrib {
 				case "ApproximateNumberOfMessages":
 					promMessages.WithLabelValues(queueResult.QueueName).Set(nMessages)
