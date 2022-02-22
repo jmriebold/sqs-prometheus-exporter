@@ -137,13 +137,18 @@ func main() {
 	}
 	queueUrls := strings.Split(queueVar, ",")
 
-	log.Info().Int("interval", int(monitorInterval)).Strs("queueUrls", queueUrls).Msg("Starting queue monitors")
+	port, portSet := os.LookupEnv("PORT")
+	if !portSet || port == "" {
+		port = "8080"
+	}
+
+	log.Info().Int("interval", int(monitorInterval)).Strs("queueUrls", queueUrls).Str("port", port).Msg("Starting queue monitors")
 
 	go monitorQueues(queueUrls)
 
 	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/healthz", healthcheck)
-	err := http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":" + port, nil)
 	if err != nil {
 		log.Error().Str("errorMessage", err.Error()).Msg("Could not start http listener")
 		os.Exit(1)
