@@ -37,7 +37,7 @@ spec:
               containerPort: 8080
               protocol: TCP
           resources:
-{{- with .Values.resources }}
+{{- with .Values.deployment.resources }}
 {{ toYaml . | indent 12 }}
 {{- end }}
           env:
