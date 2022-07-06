@@ -34,13 +34,15 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - name: traffic
-              containerPort: 8080
+              containerPort: {{ .Values.deployment.port }}
               protocol: TCP
           resources:
 {{- with .Values.deployment.resources }}
 {{ toYaml . | indent 12 }}
 {{- end }}
           env:
+            - name: PORT
+              value: {{ .Values.deployment.port | quote }}
             - name: SQS_QUEUE_URLS
               value: {{ .Values.sqs.queueUrls | join "," | quote }}
             - name: SQS_MONITOR_INTERVAL_SECONDS

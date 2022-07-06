@@ -11,6 +11,8 @@ deployment:
       memory: 15Mi
     limits: {}
 
+  port: 8080
+
   podAnnotations: {}
   extraEnv: {}
 
