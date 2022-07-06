@@ -1,6 +1,5 @@
 app:
   name: sqs-prometheus-exporter
-  namespace: default
 
 image:
   repository: jmriebold/sqs-prometheus-exporter
