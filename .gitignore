@@ -3,3 +3,5 @@
 
 # Chart packages
 *.tgz
+
+sqs-prometheus-exporter
