@@ -1,5 +1,5 @@
 # Build image
-FROM golang:1.16-alpine as build
+FROM golang:1.20-alpine as build
 
 WORKDIR /app
 
@@ -8,7 +8,7 @@ COPY main.go go.mod go.sum ./
 RUN go build
 
 # Application image
-FROM alpine:3.14 as run
+FROM alpine:3.18 as run
 
 RUN addgroup -S sqs-exporter && \
 	adduser -S -G sqs-exporter sqs-exporter --gecos "" --disabled-password --no-create-home
