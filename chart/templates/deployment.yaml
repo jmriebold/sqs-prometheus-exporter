@@ -25,9 +25,7 @@ spec:
 {{- end }}
         prometheus.io/scrape: "true"
     spec:
-{{- if .Values.serviceAccount.create }}
-      serviceAccount: {{ .Values.app.name }}
-{{- end }}
+      serviceAccountName: {{.Values.serviceAccount.name | default .Values.app.name | quote }}
       containers:
         - name: {{ .Values.app.name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
