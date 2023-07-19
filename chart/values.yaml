@@ -21,6 +21,7 @@ deployment:
   affinity: {}
 
 serviceAccount:
+  name: ""
   create: false
   annotations: {}
 
