@@ -29,14 +29,16 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
 
   lint:
-    name: lint
+    name: Imports
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v2
+      - uses: actions/checkout@master
+      - name: check
+        uses: danhunsaker/golang-github-actions@v1.3.0
         with:
-          version: v1.41
+          run: imports,errcheck,lint,shadow,staticcheck,sec
+          token: ${{ secrets.GITHUB_TOKEN }}
+          flags: '{"sec": "-exclude=G104"}'
 
   build-docker:
     runs-on: ubuntu-latest
