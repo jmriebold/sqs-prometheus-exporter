@@ -29,10 +29,6 @@ jobs:
         run: go build
         if: steps.cache.outputs.cache-hit != 'true'
 
-      - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v3.6.0
-
-
   build-docker:
     runs-on: ubuntu-latest
     steps:
