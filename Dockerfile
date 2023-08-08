@@ -1,19 +1,13 @@
-# Build image
-FROM golang:1.20-alpine as build
+FROM golang:1.21-bullseye as build
 
 WORKDIR /app
 
 COPY main.go go.mod go.sum ./
 
-RUN go build
+RUN go mod download && \
+	CGO_ENABLED=0 GOOS=linux go build
 
-# Application image
-FROM alpine:3.18 as run
-
-RUN addgroup -S sqs-exporter && \
-	adduser -S -G sqs-exporter sqs-exporter --gecos "" --disabled-password --no-create-home
-
-USER sqs-exporter
+FROM gcr.io/distroless/base-debian11 AS run
 
 COPY --from=build /app/sqs-prometheus-exporter .
 
@@ -21,4 +15,6 @@ COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 EXPOSE 8080
 
-CMD ./sqs-prometheus-exporter
+USER nonroot:nonroot
+
+ENTRYPOINT [ "./sqs-prometheus-exporter" ]
