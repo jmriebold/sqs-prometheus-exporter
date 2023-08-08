@@ -10,12 +10,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Install Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go-version }}
 
       - name: Create Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
@@ -23,22 +23,14 @@ jobs:
             ${{ runner.os }}-go-
 
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: build
         run: go build
         if: steps.cache.outputs.cache-hit != 'true'
 
-  lint:
-    name: Code Quality
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@master
-      - name: check
-        uses: danhunsaker/golang-github-actions@v1.3.0
-        with:
-          run: imports,errcheck,lint,shadow,staticcheck,sec
-          token: ${{ secrets.GITHUB_TOKEN }}
-          flags: '{"sec": "-exclude=G104"}'
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v3.6.0
+
 
   build-docker:
     runs-on: ubuntu-latest
