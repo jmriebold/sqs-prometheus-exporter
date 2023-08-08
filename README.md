@@ -40,3 +40,8 @@ SQS Prometheus Exporter uses the following Go packages:
 - [aws-sdk-go](https://github.com/aws/aws-sdk-go) for monitoring the queues themselves
 - [prometheus/client_golang](https://github.com/prometheus/client_golang) for metrics
 - [zerolog](https://github.com/rs/zerolog) for logging
+
+
+### Dev Dependencies 
+
+- [golangci](https://github.com/golangci/golangci-lint) code quality tools
