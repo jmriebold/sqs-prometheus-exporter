@@ -7,7 +7,7 @@ A simple, lightweight Prometheus metrics exporter for [AWS's Simple Queue Servic
 
 ## Use
 
-The SQS Prometheus Exporter can be run using the [Docker image](https://hub.docker.com/repository/docker/jmriebold/sqs-prometheus-exporter) with either the [docker-compose file](docker-compose.yml) or the [Helm chart](chart).
+The SQS Prometheus Exporter can be run using the [Docker image](https://github.com/jmriebold/sqs-prometheus-exporter/pkgs/container/sqs-prometheus-exporter) with either the [docker-compose file](docker-compose.yml) or the [Helm chart](chart). To use the Helm chart, execute `helm install sqs-prometheus-exporter oci://ghcr.io/jmriebold/charts/sqs-prometheus-exporter`.
 
 ### Configuration
 
@@ -42,6 +42,6 @@ SQS Prometheus Exporter uses the following Go packages:
 - [zerolog](https://github.com/rs/zerolog) for logging
 
 
-### Dev Dependencies 
+### Dev Dependencies
 
 - [golangci](https://github.com/golangci/golangci-lint) code quality tools
