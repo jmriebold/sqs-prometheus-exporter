@@ -1,0 +1,17 @@
+[Unit]
+Description=Prometheus AWS SQS exporter
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+PrivateTmp=yes
+User=prometheus
+Group=prometheus
+RuntimeDirectory=sqs-prometheus-exporter
+ExecStart=/bin/sh -c "env $(grep -v '^#' /etc/prometheus/sqs-prometheus-exporter.conf | xargs -d '\n' ) /opt/sqs-prometheus-exporter/bin/sqs-prometheus-exporter"
+ExecStartPost=/bin/sh -c "echo $MAINPID > /run/sqs-prometheus-exporter/sqs-prometheus-exporter.pid"
+PIDFile=/run/sqs-prometheus-exporter/sqs-prometheus-exporter.pid
+KillSignal=SIGTERM
+
+[Install]
+WantedBy=multi-user.target

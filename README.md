@@ -8,6 +8,7 @@ A simple, lightweight Prometheus metrics exporter for [AWS's Simple Queue Servic
 ## Use
 
 The SQS Prometheus Exporter can be run using the [Docker image](https://github.com/jmriebold/sqs-prometheus-exporter/pkgs/container/sqs-prometheus-exporter) with either the [docker-compose file](docker-compose.yml) or the [Helm chart](chart). To use the Helm chart, execute `helm install sqs-prometheus-exporter oci://ghcr.io/jmriebold/charts/sqs-prometheus-exporter`.
+It can be also configured to run as a service under systemd control - please check the `conf/systemd` folder content as an example.
 
 ### Configuration
 
