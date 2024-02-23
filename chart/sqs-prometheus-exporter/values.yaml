@@ -3,7 +3,8 @@ app:
 
 image:
   repository: ghcr.io/jmriebold/sqs-prometheus-exporter
-  tag: 1.0.5
+  # Defaults to appVersion in Chart.yaml
+  tag: ""
 
 deployment:
   resources:
