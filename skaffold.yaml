@@ -72,7 +72,6 @@ deploy:
               serviceMonitorSelectorNilUsesHelmValues: false
 
       - name: sqs-prometheus-exporter
-        version: 1.1.7
         chartPath: chart/sqs-prometheus-exporter
         createNamespace: true
         namespace: monitoring
@@ -90,11 +89,11 @@ deploy:
               AWS_ENDPOINT_URL: http://localstack.monitoring.svc.cluster.local:4566
 
 portForward:
-  #  - resourceType: service
-  #    resourceName: kube-prometheus-stack-grafana
-  #    namespace: monitoring
-  #    port: 80
-  #    localPort: 3000
+  # - resourceType: service
+  #   resourceName: kube-prometheus-stack-grafana
+  #   namespace: monitoring
+  #   port: 80
+  #   localPort: 3000
   - resourceType: service
     resourceName: kube-prometheus-stack-prometheus
     namespace: monitoring
@@ -105,8 +104,8 @@ portForward:
     namespace: monitoring
     port: 4566
     localPort: 4566
-#  - resourceType: service
-#    resourceName: sqs-prometheus-exporter
-#    namespace: monitoring
-#    port: 8080
-#    localPort: 8080
+  - resourceType: service
+    resourceName: sqs-prometheus-exporter
+    namespace: monitoring
+    port: 8080
+    localPort: 8080

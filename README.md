@@ -48,16 +48,21 @@ SQS Prometheus Exporter uses the following Go packages:
 ## Dev Dependencies
 
 - [golangci](https://github.com/golangci/golangci-lint) code quality tools
-- [skaffold](https://skaffold.dev/docs/install/#standalone-binary) k8s development tool
+- [skaffold](https://skaffold.dev) local Kubernetes development tool
 
+# Local Dev
 
-## Local Dev Setup
-### Requirements
-* k8s cluster (cloud, docker, minikube, k3d)
-* helm 
-* skaffold
+## Requirements
 
-### Setup
-* create a kubernetes cluster with your tool of choice
-* set the kubectl context
-* skaffold dev
+* Kubernetes cluster (ideally [Minikube](https://minikube.sigs.k8s.io), however managed or other types of clusters work as well)
+* [kubectl](https://kubernetes.io/docs/reference/kubectl)
+* [helm](https://helm.sh/)
+* [skaffold](https://skaffold.dev)
+
+## Setup
+
+1. Install local dev tools
+2. Create a Kubernetes cluster with your tool of choice and set kubectl context accordingly
+3. Execute `skaffold dev`
+
+SQS Prometheus Exporter should now be running alongside LocalStack and the Kube-Prometheus-Stack, where you can test your changes.
