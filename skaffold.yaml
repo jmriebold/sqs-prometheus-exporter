@@ -50,6 +50,9 @@ deploy:
             enabled: false
           kubeScheduler:
             enabled: false
+          prometheus:
+            prometheusSpec:
+              podMonitorSelectorNilUsesHelmValues: false
 
       - name: sqs-prometheus-exporter
         chartPath: chart/sqs-prometheus-exporter
@@ -61,7 +64,8 @@ deploy:
             tag: "{{.IMAGE_TAG_sqs_prometheus_exporter}}@{{.IMAGE_DIGEST_sqs_prometheus_exporter}}"
           sqs:
             region: us-east-1
-            queueUrls: [ "http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/sample-queue" ]
+            queueUrls:
+              - "http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/sample-queue"
           deployment:
             extraEnv:
               AWS_ACCESS_KEY_ID: 123

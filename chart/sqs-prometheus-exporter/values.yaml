@@ -30,9 +30,8 @@ podMonitor:
   # Enable Prometheus metrics scraping
   enabled: true
   interval: 30s
-  labels:
-    # Must match Prometheus PodMonitor selector
-    release: kube-prometheus-stack
+  # Set Prometheus PodMonitor selector labels here if needed
+  labels: {}
   relabelings: []
   metricRelabelings: []
   targetLabels: []

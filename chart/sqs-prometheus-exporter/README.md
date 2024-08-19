@@ -17,7 +17,7 @@ helm install release-name --set sqs.region=[region-name] \
 
 ### From 1.x.x to 2.x.x
 
-This version adds a Prometheus PodMonitor CRD and refactors the deployment selector labels, both of which are breaking changes, the latter of which requires a chart reinstall. When reinstalling, ensure that `podMonitor.labels.release` matches your Prometheus PodMonitor selector.
+This version adds a Prometheus PodMonitor CRD and refactors the deployment selector labels, both of which are breaking changes, the latter of which requires a chart reinstall. When reinstalling, ensure that you set `podMonitor.labels` if your Prometheus installation has a PodMonitor selector.
 
 # Configuration
 
