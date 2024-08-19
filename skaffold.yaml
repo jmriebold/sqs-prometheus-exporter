@@ -19,6 +19,7 @@ deploy:
             - name: SERVICES
               value: "sqs"
           enableStartupScripts: true
+          # language=sh
           startupScriptContent: |
             #!/bin/bash
             echo "Creating SQS queue..."
