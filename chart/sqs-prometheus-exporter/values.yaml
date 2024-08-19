@@ -26,6 +26,17 @@ serviceAccount:
   create: false
   annotations: {}
 
+podMonitor:
+  # Enable Prometheus metrics scraping
+  enabled: true
+  interval: 30s
+  labels:
+    # Must match Prometheus PodMonitor selector
+    release: kube-prometheus-stack
+  relabelings: []
+  metricRelabelings: []
+  targetLabels: []
+
 sqs:
   region: us-west-2
   queueUrls: []

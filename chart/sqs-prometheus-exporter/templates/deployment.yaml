@@ -4,26 +4,20 @@ metadata:
   name: {{ .Values.app.name }}
   namespace: {{ .Release.Namespace }}
   labels:
-    app: {{ template "sqs-prometheus-exporter.name" . }}
-    chart: {{ template "sqs-prometheus-exporter.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    {{- include "sqs-prometheus-exporter.labels" . | nindent 4 }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ template "sqs-prometheus-exporter.name" . }}
-      release: {{ .Release.Name }}
+      {{- include "sqs-prometheus-exporter.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: {{ template "sqs-prometheus-exporter.name" . }}
-        release: {{ .Release.Name }}
+        {{- include "sqs-prometheus-exporter.labels" . | nindent 8 }}
       annotations:
 {{- with .Values.deployment.podAnnotations }}
 {{ toYaml . | indent 8 }}
 {{- end }}
-        prometheus.io/scrape: "true"
     spec:
 {{- if or .Values.serviceAccount.name .Values.serviceAccount.create }}
       serviceAccountName: {{ .Values.serviceAccount.name | default .Values.app.name | quote }}
@@ -33,9 +27,9 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: IfNotPresent
           ports:
-            - name: traffic
+            - name: {{ template "portNames.container" . }}
+              protocol: {{ .Values.deployment.protocol }}
               containerPort: {{ .Values.deployment.port }}
-              protocol: TCP
           resources:
 {{- with .Values.deployment.resources }}
 {{ toYaml . | indent 12 }}

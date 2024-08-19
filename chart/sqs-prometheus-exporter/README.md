@@ -4,12 +4,20 @@ A simple, lightweight Prometheus metrics exporter for [AWS's Simple Queue Servic
 
 # Use
 
+## Installation
+
 ```bash
 helm repo add jmriebold https://jmriebold.github.io/charts
 helm install release-name --set sqs.region=[region-name] \
   --set sqs.queueUrls[0]=https://sqs.[region].amazonaws.com/[account-id]/[queue-name-1] \
   jmriebold/sqs-prometheus-exporter
 ```
+
+## Upgrading
+
+### From 1.x.x to 2.x.x
+
+This version adds a Prometheus PodMonitor CRD and refactors the deployment selector labels, both of which are breaking changes, the latter of which requires a chart reinstall. When reinstalling, ensure that `podMonitor.labels.release` matches your Prometheus PodMonitor selector.
 
 # Configuration
 

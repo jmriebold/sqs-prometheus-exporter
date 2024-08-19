@@ -39,8 +39,21 @@ Set default container port name.
 {{- end -}}
 
 {{/*
-Set default service port name.
+Selector labels
 */}}
-{{- define "portNames.service" -}}
-{{- print "http" -}}
+{{- define "sqs-prometheus-exporter.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "sqs-prometheus-exporter.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+{{/*
+Common labels
+*/}}
+{{- define "sqs-prometheus-exporter.labels" -}}
+helm.sh/chart: {{ include "sqs-prometheus-exporter.chart" . }}
+{{ include "sqs-prometheus-exporter.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
