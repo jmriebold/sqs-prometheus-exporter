@@ -1,0 +1,80 @@
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
+  name: sqs-prometheus-exporter
+
+
+build:
+  artifacts:
+    - image: sqs-prometheus-exporter
+
+
+
+deploy:
+  helm:
+    releases:
+      - name: sqs-prometheus-exporter
+        version: 1.1.7
+        chartPath: chart/sqs-prometheus-exporter
+        createNamespace: true
+        namespace: monitoring
+        setValueTemplates:
+          image:
+            repository: "{{.IMAGE_REPO_sqs_prometheus_exporter}}"
+            tag: "{{.IMAGE_TAG_sqs_prometheus_exporter}}@{{.IMAGE_DIGEST_sqs_prometheus_exporter}}"
+          sqs:
+            region: us-east-1
+            queueUrls: ["http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/sample-queue"]
+
+      - name: localstack
+        remoteChart: https://github.com/localstack/helm-charts/releases/download/localstack-0.6.16/localstack-0.6.16.tgz
+        namespace: monitoring
+        createNamespace: true
+        setValues:
+          extraEnvVars:
+          - name: SERVICES
+            value: "sqs"
+          enableStartupScripts: true
+          startupScriptContent: |
+            !#/bin/sh
+            awslocal sqs create-queue --queue-name sample-queue
+            awslocal sqs list-queues
+            awslocal sqs send-message --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/sample-queue --message-body "Hello World"
+
+      - name: kube-prometheus-stack
+        remoteChart: https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-56.0.3/kube-prometheus-stack-56.0.3.tgz
+        namespace: monitoring
+        createNamespace: true
+        setValues:
+          alertmanager:
+            enabled: false
+          defaultRules:
+            create: true
+            rules:
+              etcd: false
+              kubeScheduler: false
+          grafana:
+            enabled: true
+            image:
+              repository: grafana/grafana
+              tag: "10.1.0"
+            adminUser: skaffold
+            adminPassword: skaffold
+            sidecar:
+              alerts:
+                enabled: false
+              dashboards:
+                enabled: true
+              datasources:
+                enabled: true
+            grafana.ini:
+              auth.basic:
+                enabled: true
+          kubeEtcd:
+            enabled: false
+          kubeScheduler:
+            enabled: false
+          prometheusOperator:
+            enabled: true
+          prometheus:
+            enabled: true
