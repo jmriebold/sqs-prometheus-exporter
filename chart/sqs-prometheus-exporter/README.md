@@ -7,7 +7,7 @@ A simple, lightweight Prometheus metrics exporter for [AWS's Simple Queue Servic
 ## Installation
 
 ```bash
-helm repo add jmriebold https://jmriebold.github.io/charts
+helm repo add jmriebold oci://ghcr.io/jmriebold/charts
 helm install release-name --set sqs.region=[region-name] \
   --set sqs.queueUrls[0]=https://sqs.[region].amazonaws.com/[account-id]/[queue-name-1] \
   jmriebold/sqs-prometheus-exporter
