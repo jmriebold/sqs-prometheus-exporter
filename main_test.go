@@ -2,11 +2,18 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -75,4 +82,67 @@ func TestMonitorQueue(t *testing.T) {
 
 func TestHealthcheck(t *testing.T) {
 	assert.NotPanics(t, func() { healthcheck(nil, nil) })
+}
+
+func TestSQSMetrics(t *testing.T) {
+	// Set up mock SQS client
+	mockClient := new(MockSQSClient)
+	originalSvc := svc
+	svc = mockClient
+	defer func() { svc = originalSvc }()
+
+	// Set up test queue URL and expected metrics
+	queueURL := "https://sqs.us-west-2.amazonaws.com/123456789012/TestQueue"
+	expectedOutput := &sqs.GetQueueAttributesOutput{
+		Attributes: map[string]string{
+			"ApproximateNumberOfMessages":           "10",
+			"ApproximateNumberOfMessagesDelayed":    "5",
+			"ApproximateNumberOfMessagesNotVisible": "2",
+		},
+	}
+
+	// Configure mock client to return the expected output
+	mockClient.On("GetQueueAttributes", mock.Anything, mock.Anything, mock.Anything).Return(expectedOutput, nil)
+
+	// Set environment variables
+	os.Setenv("SQS_QUEUE_URLS", queueURL)
+	os.Setenv("SQS_MONITOR_INTERVAL_SECONDS", "1")
+	defer os.Unsetenv("SQS_QUEUE_URLS")
+	defer os.Unsetenv("SQS_MONITOR_INTERVAL_SECONDS")
+
+	// Start the monitor in a goroutine
+	go monitorQueues([]string{queueURL})
+
+	// Wait for metrics to be collected
+	time.Sleep(2 * time.Second)
+
+	// Set up test HTTP server
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", promhttp.Handler())
+	testServer := httptest.NewServer(mux)
+	defer testServer.Close()
+
+	// Send request to /metrics endpoint
+	resp, err := http.Get(testServer.URL + "/metrics")
+	assert.NoError(t, err)
+	defer resp.Body.Close()
+
+	// Read response body
+	body, err := io.ReadAll(resp.Body)
+	assert.NoError(t, err)
+
+	// Check for expected metrics
+	bodyString := string(body)
+	expectedMetrics := []string{
+		`sqs_approximatenumberofmessages{queue="TestQueue"} 10`,
+		`sqs_approximatenumberofmessagesdelayed{queue="TestQueue"} 5`,
+		`sqs_approximatenumberofmessagesnotvisible{queue="TestQueue"} 2`,
+	}
+
+	for _, metric := range expectedMetrics {
+		assert.True(t, strings.Contains(bodyString, metric), fmt.Sprintf("Metric not found: %s", metric))
+	}
+
+	// Clear registered metrics to avoid conflicts in other tests
+	prometheus.DefaultRegisterer = prometheus.NewRegistry()
 }
