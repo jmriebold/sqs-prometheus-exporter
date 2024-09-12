@@ -1,6 +1,6 @@
 apiVersion: v2
 name: sqs-prometheus-exporter
-version: 2.0.1
+version: 2.0.2
 description: Helm chart for the SQS Prometheus Exporter
 keywords:
   - prometheus
@@ -15,4 +15,4 @@ sources:
 maintainers:
   - name: John Riebold
     email: jmriebold@gmail.com
-appVersion: 1.0.8
+appVersion: 1.0.9
