@@ -19,11 +19,16 @@ import (
 )
 
 // Default to checking queues every 30 seconds
-const defaultMonitorInterval = 30
+const defaultMonitorInterval = 30 * time.Second
 
-var svc = getSqsClient()
+// SQSClientInterface defines the interface for SQS operations we use
+type SQSClientInterface interface {
+	GetQueueAttributes(ctx context.Context, params *sqs.GetQueueAttributesInput, optFns ...func(*sqs.Options)) (*sqs.GetQueueAttributesOutput, error)
+}
 
-var monitorInterval = getMonitorInterval()
+var svc SQSClientInterface
+
+var monitorInterval time.Duration
 
 var labelNames = []string{"queue"}
 
@@ -48,7 +53,7 @@ type queueResult struct {
 	QueueResults *sqs.GetQueueAttributesOutput
 }
 
-func getSqsClient() *sqs.Client {
+func getSqsClient() SQSClientInterface {
 	cfg, err := config.LoadDefaultConfig(context.TODO())
 	if err != nil {
 		log.Error().Str("errorMessage", err.Error()).Msg("error loading AWS config")
@@ -62,15 +67,15 @@ func getMonitorInterval() time.Duration {
 	monitorIntervalStr, varSet := os.LookupEnv("SQS_MONITOR_INTERVAL_SECONDS")
 	if !varSet || monitorIntervalStr == "" {
 		log.Warn().Msg(fmt.Sprintf("Monitor interval not set, defaulting to %v", defaultMonitorInterval))
-		return time.Duration(defaultMonitorInterval)
+		return defaultMonitorInterval
 	}
 
 	monitorInterval, err := strconv.Atoi(monitorIntervalStr)
 	if err != nil {
-		log.Error().Str("errorMessage", err.Error()).Msg("bad value for SQS_MONITOR_INTERVAL")
-		os.Exit(1)
+		log.Warn().Str("errorMessage", err.Error()).Msg("Invalid value for SQS_MONITOR_INTERVAL, using default")
+		return defaultMonitorInterval
 	}
-	return time.Duration(monitorInterval)
+	return time.Duration(monitorInterval) * time.Second
 }
 
 func monitorQueue(queueURL string, c chan queueResult) {
@@ -89,7 +94,8 @@ func monitorQueue(queueURL string, c chan queueResult) {
 	resp, err := svc.GetQueueAttributes(context.TODO(), params)
 	if err != nil {
 		log.Error().Str("errorMessage", err.Error()).Msg("error checking queue")
-		os.Exit(1)
+		c <- queueResult{queueURL, queueName, nil} // Send a result with nil QueueResults to indicate error
+		return
 	}
 
 	c <- queueResult{queueURL, queueName, resp}
@@ -104,6 +110,9 @@ func monitorQueues(queueUrls []string) {
 
 		for i := 0; i < len(queueUrls); i++ {
 			queueResult := <-c
+			if queueResult.QueueResults == nil {
+				continue // Skip this queue if there was an error
+			}
 			for attrib := range queueResult.QueueResults.Attributes {
 				prop := queueResult.QueueResults.Attributes[attrib]
 				nMessages, _ := strconv.ParseFloat(prop, 64)
@@ -115,18 +124,17 @@ func monitorQueues(queueUrls []string) {
 				case "ApproximateNumberOfMessagesNotVisible":
 					promMessagesNotVisible.WithLabelValues(queueResult.QueueName).Set(nMessages)
 				default:
-					log.Error().Msg(fmt.Sprintf("unknown attribute %v", attrib))
-					os.Exit(1)
+					log.Warn().Msg(fmt.Sprintf("unknown attribute %v", attrib))
 				}
 			}
 		}
 
-		time.Sleep(monitorInterval * time.Second)
+		time.Sleep(monitorInterval)
 	}
 }
 
 // Return an empty 200 response for healthchecks
-func healthcheck(http.ResponseWriter, *http.Request) {
+func healthcheck(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
@@ -142,13 +150,17 @@ func main() {
 		port = "8080"
 	}
 
-	log.Info().Int("interval", int(monitorInterval)).Strs("queueUrls", queueUrls).Str("port", port).Msg("Starting queue monitors")
+	monitorInterval = getMonitorInterval()
+
+	log.Info().Dur("interval", monitorInterval).Strs("queueUrls", queueUrls).Str("port", port).Msg("Starting queue monitors")
+
+	svc = getSqsClient()
 
 	go monitorQueues(queueUrls)
 
 	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/healthz", healthcheck)
-	err := http.ListenAndServe(":" + port, nil)
+	err := http.ListenAndServe(":"+port, nil)
 	if err != nil {
 		log.Error().Str("errorMessage", err.Error()).Msg("Could not start http listener")
 		os.Exit(1)
