@@ -1,7 +1,7 @@
 # SQS Prometheus Exporter
 
 ![build](https://github.com/jmriebold/sqs-prometheus-exporter/workflows/Build/badge.svg)
-[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/jmriebold)](https://artifacthub.io/packages/search?repo=jmriebold)
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/sqs-prometheus-exporter)](https://artifacthub.io/packages/helm/sqs-prometheus-exporter/sqs-prometheus-exporter)
 
 A simple, lightweight Prometheus metrics exporter for [AWS' Simple Queue Service](https://aws.amazon.com/sqs/), written in Go. Potential use cases are monitoring SQS queues or scaling off SQS queues (e.g. with a [Kubernetes HPA](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/)).
 
