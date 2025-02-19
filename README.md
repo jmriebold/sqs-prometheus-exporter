@@ -47,7 +47,7 @@ SQS Prometheus Exporter uses the following Go packages:
 
 ## Dev Dependencies
 
-- [golangci](https://github.com/golangci/golangci-lint) code quality tools
+- [golangci](https://github.com/golangci/golangci-lint) code quality tools | `go tool golangci-lint run`
 - [skaffold](https://skaffold.dev) local Kubernetes development tool
 
 # Local Dev
