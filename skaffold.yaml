@@ -11,7 +11,7 @@ deploy:
   helm:
     releases:
       - name: localstack
-        remoteChart: https://github.com/localstack/helm-charts/releases/download/localstack-0.6.16/localstack-0.6.16.tgz
+        remoteChart: https://github.com/localstack/helm-charts/releases/download/localstack-0.6.21/localstack-0.6.21.tgz
         namespace: monitoring
         createNamespace: true
         setValues:
@@ -31,7 +31,7 @@ deploy:
             done
 
       - name: kube-prometheus-stack
-        remoteChart: https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-61.9.0/kube-prometheus-stack-61.9.0.tgz
+        remoteChart: https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-69.3.3/kube-prometheus-stack-69.3.3.tgz
         namespace: monitoring
         createNamespace: true
         setValues:

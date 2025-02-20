@@ -9,3 +9,4 @@
 sqs-prometheus-exporter
 
 !chart/sqs-prometheus-exporter
+dist/
