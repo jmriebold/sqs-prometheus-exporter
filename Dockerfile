@@ -12,7 +12,7 @@ RUN useradd -u 10001 scratchuser
 
 FROM scratch AS run
 
-COPY --from=0 /etc/passwd /etc/passwd
+COPY --from=build /etc/passwd /etc/passwd
 COPY --from=build /app/sqs-prometheus-exporter .
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
