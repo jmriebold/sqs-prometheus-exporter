@@ -7,14 +7,16 @@ COPY main.go go.mod go.sum ./
 RUN go mod download && \
 	CGO_ENABLED=0 GOOS=linux go build
 
-FROM gcr.io/distroless/base-debian11 AS run
+RUN useradd -u 10001 scratchuser
 
+
+FROM scratch AS run
+
+COPY --from=build /etc/passwd /etc/passwd
 COPY --from=build /app/sqs-prometheus-exporter .
-
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 EXPOSE 8080
 
-USER nonroot:nonroot
-
+USER scratchuser
 ENTRYPOINT [ "./sqs-prometheus-exporter" ]
