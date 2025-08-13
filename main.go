@@ -54,7 +54,9 @@ type queueResult struct {
 }
 
 func getSqsClient() SQSClientInterface {
-	cfg, err := config.LoadDefaultConfig(context.TODO())
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
 		log.Error().Str("errorMessage", err.Error()).Msg("error loading AWS config")
 		os.Exit(1)
@@ -80,6 +82,11 @@ func getMonitorInterval() time.Duration {
 
 func monitorQueue(queueURL string, c chan queueResult) {
 	queueComponents := strings.Split(queueURL, "/")
+	if len(queueComponents) == 0 {
+		log.Error().Str("queueURL", queueURL).Msg("Invalid queue URL format")
+		c <- queueResult{queueURL, "", nil}
+		return
+	}
 	queueName := queueComponents[len(queueComponents)-1]
 
 	params := &sqs.GetQueueAttributesInput{
@@ -91,7 +98,9 @@ func monitorQueue(queueURL string, c chan queueResult) {
 		},
 	}
 
-	resp, err := svc.GetQueueAttributes(context.TODO(), params)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	resp, err := svc.GetQueueAttributes(ctx, params)
 	if err != nil {
 		log.Error().Str("errorMessage", err.Error()).Msg("error checking queue")
 		c <- queueResult{queueURL, queueName, nil} // Send a result with nil QueueResults to indicate error
@@ -102,7 +111,7 @@ func monitorQueue(queueURL string, c chan queueResult) {
 }
 
 func monitorQueues(queueUrls []string) {
-	c := make(chan queueResult)
+	c := make(chan queueResult, len(queueUrls))
 	for {
 		for _, queueURL := range queueUrls {
 			go monitorQueue(queueURL, c)
@@ -115,7 +124,11 @@ func monitorQueues(queueUrls []string) {
 			}
 			for attrib := range queueResult.QueueResults.Attributes {
 				prop := queueResult.QueueResults.Attributes[attrib]
-				nMessages, _ := strconv.ParseFloat(prop, 64)
+				nMessages, err := strconv.ParseFloat(prop, 64)
+				if err != nil {
+					log.Error().Err(err).Str("attribute", attrib).Str("value", prop).Msg("Failed to parse metric")
+					continue
+				}
 				switch attrib {
 				case "ApproximateNumberOfMessages":
 					promMessages.WithLabelValues(queueResult.QueueName).Set(nMessages)
