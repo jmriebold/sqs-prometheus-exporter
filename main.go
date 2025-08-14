@@ -167,7 +167,6 @@ func monitorQueuesWithContext(ctx context.Context, queueUrls []string) {
 			}
 		}
 		
-		monitorInterval := getMonitorInterval()
 		time.Sleep(monitorInterval)
 	}
 }
