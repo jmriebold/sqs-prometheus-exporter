@@ -18,6 +18,16 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+func TestMain(m *testing.M) {
+	// Initialize svc with a mock client to prevent nil pointer issues
+	if svc == nil {
+		svc = new(MockSQSClient)
+	}
+	// Run tests
+	code := m.Run()
+	os.Exit(code)
+}
+
 // MockSQSClient is a mock of the SQS client
 type MockSQSClient struct {
 	mock.Mock
@@ -110,8 +120,12 @@ func TestSQSMetrics(t *testing.T) {
 	defer os.Unsetenv("SQS_QUEUE_URLS")
 	defer os.Unsetenv("SQS_MONITOR_INTERVAL_SECONDS")
 
-	// Start the monitor in a goroutine
-	go monitorQueues([]string{queueURL})
+	// Create a context that can be cancelled
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Start the monitor in a goroutine with context
+	go monitorQueuesWithContext(ctx, []string{queueURL})
 
 	// Wait for metrics to be collected
 	time.Sleep(2 * time.Second)

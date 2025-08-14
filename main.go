@@ -81,6 +81,12 @@ func getMonitorInterval() time.Duration {
 }
 
 func monitorQueue(queueURL string, c chan queueResult) {
+	if svc == nil {
+		log.Error().Str("queueURL", queueURL).Msg("SQS client not initialized")
+		c <- queueResult{queueURL, "", nil}
+		return
+	}
+
 	queueComponents := strings.Split(queueURL, "/")
 	if len(queueComponents) == 0 {
 		log.Error().Str("queueURL", queueURL).Msg("Invalid queue URL format")
@@ -111,37 +117,57 @@ func monitorQueue(queueURL string, c chan queueResult) {
 }
 
 func monitorQueues(queueUrls []string) {
+	monitorQueuesWithContext(context.Background(), queueUrls)
+}
+
+func monitorQueuesWithContext(ctx context.Context, queueUrls []string) {
 	c := make(chan queueResult, len(queueUrls))
 	for {
-		for _, queueURL := range queueUrls {
-			go monitorQueue(queueURL, c)
-		}
-
-		for i := 0; i < len(queueUrls); i++ {
-			queueResult := <-c
-			if queueResult.QueueResults == nil {
-				continue // Skip this queue if there was an error
-			}
-			for attrib := range queueResult.QueueResults.Attributes {
-				prop := queueResult.QueueResults.Attributes[attrib]
-				nMessages, err := strconv.ParseFloat(prop, 64)
-				if err != nil {
-					log.Error().Err(err).Str("attribute", attrib).Str("value", prop).Msg("Failed to parse metric")
-					continue
-				}
-				switch attrib {
-				case "ApproximateNumberOfMessages":
-					promMessages.WithLabelValues(queueResult.QueueName).Set(nMessages)
-				case "ApproximateNumberOfMessagesDelayed":
-					promMessagesDelayed.WithLabelValues(queueResult.QueueName).Set(nMessages)
-				case "ApproximateNumberOfMessagesNotVisible":
-					promMessagesNotVisible.WithLabelValues(queueResult.QueueName).Set(nMessages)
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			// Check context before spawning goroutines
+			for _, queueURL := range queueUrls {
+				select {
+				case <-ctx.Done():
+					return
 				default:
-					log.Warn().Msg(fmt.Sprintf("unknown attribute %v", attrib))
+					go monitorQueue(queueURL, c)
+				}
+			}
+
+			for i := 0; i < len(queueUrls); i++ {
+				select {
+				case <-ctx.Done():
+					return
+				case queueResult := <-c:
+					if queueResult.QueueResults == nil {
+						continue // Skip this queue if there was an error
+					}
+					for attrib := range queueResult.QueueResults.Attributes {
+						prop := queueResult.QueueResults.Attributes[attrib]
+						nMessages, err := strconv.ParseFloat(prop, 64)
+						if err != nil {
+							log.Error().Err(err).Str("attribute", attrib).Str("value", prop).Msg("Failed to parse metric")
+							continue
+						}
+						switch attrib {
+						case "ApproximateNumberOfMessages":
+							promMessages.WithLabelValues(queueResult.QueueName).Set(nMessages)
+						case "ApproximateNumberOfMessagesDelayed":
+							promMessagesDelayed.WithLabelValues(queueResult.QueueName).Set(nMessages)
+						case "ApproximateNumberOfMessagesNotVisible":
+							promMessagesNotVisible.WithLabelValues(queueResult.QueueName).Set(nMessages)
+						default:
+							log.Warn().Msg(fmt.Sprintf("unknown attribute %v", attrib))
+						}
+					}
 				}
 			}
 		}
-
+		
+		monitorInterval := getMonitorInterval()
 		time.Sleep(monitorInterval)
 	}
 }
