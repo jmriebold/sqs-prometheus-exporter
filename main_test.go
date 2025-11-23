@@ -16,6 +16,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 // MockSQSClient is a mock of the SQS client
@@ -42,8 +43,10 @@ func TestGetMonitorInterval(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			os.Setenv("SQS_MONITOR_INTERVAL_SECONDS", tt.envValue)
-			defer os.Unsetenv("SQS_MONITOR_INTERVAL_SECONDS")
+			require.NoError(t, os.Setenv("SQS_MONITOR_INTERVAL_SECONDS", tt.envValue))
+			defer func() {
+				require.NoError(t, os.Unsetenv("SQS_MONITOR_INTERVAL_SECONDS"))
+			}()
 
 			result := getMonitorInterval()
 			assert.Equal(t, tt.expectedResult, result)
@@ -105,10 +108,12 @@ func TestSQSMetrics(t *testing.T) {
 	mockClient.On("GetQueueAttributes", mock.Anything, mock.Anything, mock.Anything).Return(expectedOutput, nil)
 
 	// Set environment variables
-	os.Setenv("SQS_QUEUE_URLS", queueURL)
-	os.Setenv("SQS_MONITOR_INTERVAL_SECONDS", "1")
-	defer os.Unsetenv("SQS_QUEUE_URLS")
-	defer os.Unsetenv("SQS_MONITOR_INTERVAL_SECONDS")
+	require.NoError(t, os.Setenv("SQS_QUEUE_URLS", queueURL))
+	require.NoError(t, os.Setenv("SQS_MONITOR_INTERVAL_SECONDS", "1"))
+	defer func() {
+		require.NoError(t, os.Unsetenv("SQS_QUEUE_URLS"))
+		require.NoError(t, os.Unsetenv("SQS_MONITOR_INTERVAL_SECONDS"))
+	}()
 
 	// Set the monitor interval
 	originalInterval := monitorInterval
@@ -134,7 +139,9 @@ func TestSQSMetrics(t *testing.T) {
 	// Send request to /metrics endpoint
 	resp, err := http.Get(testServer.URL + "/metrics")
 	assert.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() {
+		require.NoError(t, resp.Body.Close())
+	}()
 
 	// Read response body
 	body, err := io.ReadAll(resp.Body)
