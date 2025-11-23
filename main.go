@@ -101,8 +101,11 @@ func monitorQueue(queueURL string, c chan queueResult) {
 	c <- queueResult{queueURL, queueName, resp}
 }
 
-func monitorQueues(queueUrls []string) {
+func monitorQueues(ctx context.Context, queueUrls []string) {
 	c := make(chan queueResult)
+	ticker := time.NewTicker(monitorInterval)
+	defer ticker.Stop()
+
 	for {
 		for _, queueURL := range queueUrls {
 			go monitorQueue(queueURL, c)
@@ -129,7 +132,12 @@ func monitorQueues(queueUrls []string) {
 			}
 		}
 
-		time.Sleep(monitorInterval)
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			// Continue to next iteration
+		}
 	}
 }
 
@@ -156,7 +164,7 @@ func main() {
 
 	svc = getSqsClient()
 
-	go monitorQueues(queueUrls)
+	go monitorQueues(context.Background(), queueUrls)
 
 	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/healthz", healthcheck)

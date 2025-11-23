@@ -2,10 +2,17 @@
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
   - repo: https://github.com/golangci/golangci-lint
-    rev: v2.3.0
+    rev: v2.6.2
     hooks:
       - id: golangci-lint
-        args: ["run"]
+        name: golangci-lint
+        description: Fast linters runner for Go. Note that only modified files are linted, so linters like 'unused' that need to scan all files won't work as expected.
+        entry: golangci-lint run --new-from-rev HEAD --fix
+        types: [go]
+        language: golang
+        require_serial: true
+        pass_filenames: false
+
   - repo: local
     hooks:
       - id: go-fmt
@@ -18,7 +25,7 @@ repos:
         entry: go mod tidy
         language: system
         pass_filenames: false
-        always_run: true
+        files: ^go\.(mod|sum)$
       - id: go-test
         name: go test
         entry: go test

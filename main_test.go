@@ -110,8 +110,17 @@ func TestSQSMetrics(t *testing.T) {
 	defer os.Unsetenv("SQS_QUEUE_URLS")
 	defer os.Unsetenv("SQS_MONITOR_INTERVAL_SECONDS")
 
+	// Set the monitor interval
+	originalInterval := monitorInterval
+	monitorInterval = getMonitorInterval()
+	defer func() { monitorInterval = originalInterval }()
+
+	// Create a cancellable context for the monitoring goroutine
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	// Start the monitor in a goroutine
-	go monitorQueues([]string{queueURL})
+	go monitorQueues(ctx, []string{queueURL})
 
 	// Wait for metrics to be collected
 	time.Sleep(2 * time.Second)
