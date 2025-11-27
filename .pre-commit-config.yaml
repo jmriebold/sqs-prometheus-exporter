@@ -1,0 +1,33 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+  - repo: https://github.com/golangci/golangci-lint
+    rev: v2.6.2
+    hooks:
+      - id: golangci-lint
+        name: golangci-lint
+        entry: golangci-lint run --fix
+        types: [go]
+        language: golang
+        require_serial: true
+        pass_filenames: false
+
+  - repo: local
+    hooks:
+      - id: go-fmt
+        name: go fmt
+        entry: gofmt -w
+        language: system
+        types: [go]
+      - id: go-mod-tidy
+        name: go mod tidy
+        entry: go mod tidy
+        language: system
+        pass_filenames: false
+        files: ^go\.(mod|sum)$
+      - id: go-test
+        name: go test
+        entry: go test
+        language: system
+        pass_filenames: false
+        always_run: true
